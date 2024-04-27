@@ -1,4 +1,4 @@
 # AppleGL
-[capture.webm](https://github.com/davider0/applegl/assets/69058122/ce87a10c-95e1-46b3-b95c-25da8d4bc4c3)
+![capture](https://github.com/davider0/applegl/assets/69058122/b404e8c6-09a6-4fc5-9557-fdb9227890b6)
 
-AppleGL uses AI-generated JSON prompts to create minimalist Apple-style shaders 
+AppleGL is a tool intended to generate fully customizable Apple-style shaders without having to know how to program in GLSL, with the help of AI-generated JSON prompts 
