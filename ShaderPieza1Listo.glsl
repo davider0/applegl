@@ -59,7 +59,7 @@ uniform mediump float layerAngle;
     sin(sin(sin(s=s+s+t).y+s).z+s).x*fIntensidadTensor-fConcavidadTensor)
 
 void main(void) {
-    lowp vec3 p, s, O, R = vec3(1.0,pixelSize);
+    lowp vec3 p, s, O, R = vec3(1.0,1920.0,1080.0);
     lowp vec2 u = vec2(gl_FragCoord / R.y);
     lowp float t = seconds, d = fElevacionZEfectoDeformacion, r;
     
@@ -68,7 +68,7 @@ void main(void) {
         s = p = vec3((u - fPosicion * R.xy) / R.y * d, fCorteSeccion - d);
         d += min(r = M, fSuavidadLineasEfectoDegradado); // Assuming M is defined elsewhere
         s = p + fSaturacion;
-        lowp vec3 color = max(O + fBrilloEfectoDegradado - r * fLongitudDegradado, O + fFondo) * (vec3(fColorR1, fColorG1, fColorB1) - vec3(iColorR2, iColorG2, iColorB2) * (M - r) / 4.0);
+        highp vec3 color = max(O + fBrilloEfectoDegradado - r * fLongitudDegradado, O + fFondo) * (vec3(fColorR1, fColorG1, fColorB1) - vec3(iColorR2, iColorG2, iColorB2) * (M - r) / 4.0);
         gl_FragColor = vec4(color, 1.0); // Set alpha to 1.0 for full opacity
     }
 }
