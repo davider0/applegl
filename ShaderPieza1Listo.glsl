@@ -1,56 +1,56 @@
-precision mediump float;
+uniform lowp float estiramientoX;
+uniform lowp float estiramientoZ;
+uniform lowp float estiramientoY;
+uniform lowp float estiramientoW;
+uniform lowp float fSaturacion;
+uniform lowp float fTamanyo;
+uniform lowp float fGrosor;
+uniform lowp float fLongitudDegradado;
+uniform lowp float fCorteSeccion;
+uniform lowp float fIntensidadTensor;
+uniform lowp float fConcavidadTensor;
+uniform lowp float fElevacionZEfectoDeformacion;
+const lowp float fSuavidadEfectoDegradado = 7.0;
+uniform lowp float fBrilloEfectoDegradado;
+uniform lowp float fFondo;
+uniform lowp float fSuavidadLineasEfectoDegradado;
+uniform lowp float fColorR1;
+uniform lowp float fColorG1;
+uniform lowp float fColorB1;
+uniform lowp float iColorR2;
+uniform lowp float iColorG2;
+uniform lowp float iColorB2;
+uniform lowp float fPosicion;
 
-uniform vec3      iResolution;           // viewport resolution (in pixels)
-uniform float     iTime;                 // shader playback time (in seconds)
-uniform float     iTimeDelta;            // render time (in seconds)
-uniform float     iFrameRate;            // shader frame rate
-uniform int       iFrame;                // shader playback frame
-uniform float     iChannelTime[4];       // channel playback time (in seconds)
-uniform vec3      iChannelResolution[4]; // channel resolution (in pixels)
-uniform vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
-uniform sampler2D iChannel0;             // input channel. XX = 2D/Cube
-uniform sampler2D iChannel1;             // input channel. XX = 2D/Cube
-uniform sampler2D iChannel2;             // input channel. XX = 2D/Cube
-uniform sampler2D iChannel3;             // input channel. XX = 2D/Cube
-uniform vec4      iDate;                 // (year, month, day, time in seconds)
-uniform float     iSampleRate;           // sound sample rate (i.e., 44100)
+/////////////////////////////////////////////////////////
+// ether
 
-// Movimiento
-const float estiramientoX = 0.0;
-const float estiramientoZ = 55.0;
-const float estiramientoY = 33.0;
-const float estiramientoW = 0.0;
-
-// Tamaño
-const float fSaturacion = 0.1;
-const float fTamanyo = 1.0;
-const float fGrosor = 0.7;
-const float fLongitudDegradado = 0.29;
-const float fCorteSeccion = 5.0;
-
-// Huecos
-const float fIntensidadTensor = 0.5;
-const float fConcavidadTensor = 1.0;
-
-// Detalles
-const float fElevacionZEfectoDeformacion = 2.5;
-const float fSuavidadEfectoDegradado = 7.0;
-const float fBrilloEfectoDegradado = 0.9;
-const float fFondo = 0.0;
-const float fSuavidadLineasEfectoDegradado = 1.0;
-
-// Colores
-// Color 1
-const float fColorR1 = 0.1;
-const float fColorG1 = 0.3;
-const float fColorB1 = 0.4;
-// Color 2
-const int iColorR2 = 10;
-const int iColorG2 = 5;
-const int iColorB2 = 6;
-
-//Posicion
-const float fPosicion = 0.5; // 0.5 es el centro de la pantalla
+//The current foreground texture co-ordinate
+varying mediump vec2 vTex;
+//The foreground texture sampler, to be sampled at vTex
+uniform lowp sampler2D samplerFront;
+//The current foreground rectangle being rendered
+uniform mediump vec2 srcStart;
+uniform mediump vec2 srcEnd;
+//The current foreground source rectangle being rendered
+uniform mediump vec2 srcOriginStart;
+uniform mediump vec2 srcOriginEnd;
+//The current foreground source rectangle being rendered, in layout 
+uniform mediump vec2 layoutStart;
+uniform mediump vec2 layoutEnd;
+//The background texture sampler used for background - blending effects
+uniform lowp sampler2D samplerBack;
+//The current background rectangle being rendered to, in texture co-ordinates, for background-blending effects
+uniform mediump vec2 destStart;
+uniform mediump vec2 destEnd;
+//The time in seconds since the runtime started. This can be used for animated effects
+uniform mediump float seconds;
+//The size of a texel in the foreground texture in texture co-ordinates
+uniform mediump vec2 pixelSize;
+//The current layer scale as a factor (i.e. 1 is unscaled)
+uniform mediump float layerScale;
+//The current layer angle in radians.
+uniform mediump float layerAngle;
 
 #define m *= mat2(cos(vec4(estiramientoX,estiramientoY,estiramientoZ,estiramientoW) + t*
 #define M \
@@ -58,16 +58,17 @@ const float fPosicion = 0.5; // 0.5 es el centro de la pantalla
     length(s + sin(t*fGrosor))*log(length(s)+fTamanyo)+ \
     sin(sin(sin(s=s+s+t).y+s).z+s).x*fIntensidadTensor-fConcavidadTensor)
 
-void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-    vec3 p, s, O, R = iResolution;
-    vec2 u = fragCoord / R.y;
-    float t = iTime, d = fElevacionZEfectoDeformacion, r;
-    for (float i = 0.0; i < fSuavidadEfectoDegradado; i++) {
-        t = iTime + i; // Update time within the loop
+void main(void) {
+    lowp vec3 p, s, O, R = vec3(1.0,pixelSize);
+    lowp vec2 u = vec2(gl_FragCoord / R.y);
+    lowp float t = seconds, d = fElevacionZEfectoDeformacion, r;
+    
+    for (lowp float i = 0.0; i < fSuavidadEfectoDegradado; i++) {
+        t = seconds + i; // Update time within the loop
         s = p = vec3((u - fPosicion * R.xy) / R.y * d, fCorteSeccion - d);
         d += min(r = M, fSuavidadLineasEfectoDegradado); // Assuming M is defined elsewhere
         s = p + fSaturacion;
-        vec3 color = max(O + fBrilloEfectoDegradado - r * fLongitudDegradado, O + fFondo) * (vec3(fColorR1, fColorG1, fColorB1) - vec3(iColorR2, iColorG2, iColorB2) * (M - r) / 4.0);
-        fragColor = vec4(color, 1.0); // Set alpha to 1.0 for full opacity
+        lowp vec3 color = max(O + fBrilloEfectoDegradado - r * fLongitudDegradado, O + fFondo) * (vec3(fColorR1, fColorG1, fColorB1) - vec3(iColorR2, iColorG2, iColorB2) * (M - r) / 4.0);
+        gl_FragColor = vec4(color, 1.0); // Set alpha to 1.0 for full opacity
     }
 }
